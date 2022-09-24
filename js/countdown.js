@@ -1,29 +1,19 @@
 var GetVars;
-var cooldown_config;
+var countdown_config;
 var initialDate;
 var countdownDate;
 var totalDistance;
 var colors;
-var frame;
 
+// Function to map a number within a range.
 function mapRange(from, to, s) {
     return to[0] + (s - from[0]) * (to[1] - to[0]) / (from[1] - from[0]);
 }
 
+// Function to oscillate along a sine wave.
 function oscillator(time, frequency = 1, amplitude = 1, phase = 0, offset = 0){
     return Math.sin(time * frequency * Math.PI * 2 + phase * Math.PI * 2) * amplitude + offset; 
 }
-
-function GetDivCSSColor(fromClass) {
-    var $inspector = $("<div>").css('display', 'none').addClass(fromClass);
-    $("body").append($inspector); // add to DOM, in order to read the CSS property
-    try {
-        var color = $inspector.css('color');
-        return color;
-    } finally {
-        $inspector.remove(); // and remove from DOM
-    }
-};
 
 // Function to parse GET variables.
 function parseGet() {
@@ -60,6 +50,62 @@ function getTimeRemaining(endtime) {
     };
 }
 
+// Function to simplify color table building code.
+function getColorSet(query, prop, mix) {
+    return {
+        short: chroma.scale(
+                [$(query).css(prop),
+                chroma.mix($(query).css(prop), getDivCSSColor('shortcolor'), mix)]
+            ).mode('lch').colors(countdown_config.color_precision),
+        mid: chroma.scale(
+                [$(query).css(prop),
+                chroma.mix($(query).css(prop), getDivCSSColor('midcolor'), mix)]
+            ).mode('lch').colors(countdown_config.color_precision),
+        long: chroma.scale(
+                [$(query).css(prop),
+                chroma.mix($(query).css(prop), getDivCSSColor('longcolor'), mix)]
+            ).mode('lch').colors(countdown_config.color_precision)
+    }
+}
+
+// Function to fetch the countdown timer configuration
+function getConfig() {
+    var getVars = parseGet();
+    countdown_config = {
+        days: parseInt((!getVars['d']) ? 0 : getVars['d']),
+        days_enabled: !(!getVars['d']),
+        hours: parseInt((!getVars["h"]) ? 0 : getVars['h']),
+        hours_enabled: !(!getVars['h']),
+        minutes: parseInt((!getVars['m']) ? 0 : getVars['m']),
+        minutes_enabled: !(!getVars['m']),
+        seconds: parseInt((!getVars['s']) ? 0 : getVars['s']),
+        seconds_enabled: !(!getVars['s']),
+        color_precision: parseInt((!getVars['pr']) ? 32 : getVars['pr'])
+    }
+    if (!countdown_config.seconds_enabled && !countdown_config.minutes_enabled && !countdown_config.hours_enabled && !countdown_config.days_enabled) {
+        throw new Error("No time specified in GET variables.  You need to set a countdown time.");
+    }
+    initialDate = new Date().getTime();
+    countDownDate = new Date(initialDate +
+        (1000 * countdown_config.seconds) +
+        (1000 * 60 * countdown_config.minutes) +
+        (1000 * 60 * 60 * countdown_config.hours)
+    ).getTime();
+    totalDistance = countDownDate - initialDate;
+}
+
+// Function to get a css color by inspecting it from an invisible DOM node.
+function getDivCSSColor(fromClass) {
+    var $inspector = $("<div>").css('display', 'none').addClass(fromClass);
+    $("body").append($inspector);
+    try {
+        var color = $inspector.css('color');
+        return color;
+    } finally {
+        $inspector.remove();
+    }
+};
+
 // Function to update the clock portion of the UI.
 function updateClock(endtime) {
     const t = getTimeRemaining(endtime);
@@ -74,37 +120,31 @@ function updateClock(endtime) {
     millisecondsSpan.innerHTML = ('0' + t.milliseconds).slice(-2);
 }
 
-// Update the colors of the clock based on three different sine wave oscillators to
-// add some visual flair!
+// Update the colors of the clock based on modulated sine wave oscillator.
 function updateColors(_currentDistance, _totalDistance) {
     let percentage = (_totalDistance - _currentDistance) / _totalDistance;
-    if (percentage <= 0.75) {
-        index = Math.round(
-            oscillator((totalDistance * percentage) / 1000, 0.125, 16, 0, 16)
-        );
+    index = Math.round(oscillator((totalDistance * percentage) / 1000, mapRange([0.0, 1.0], [0.125, 1.0], 1.0 * percentage), Math.round(countdown_config.color_precision / 2), 0, Math.round(countdown_config.color_precision / 2)));
+    if (percentage <= 0.5) {
         $('#timer > span.hours').css('color', colors.hours.long[index]);
         $('#timer > span.minutes').css('color', colors.minutes.long[index]);
         $('#timer > span.seconds').css('color', colors.seconds.long[index]);
         $('#timer > span.milliseconds').css('color', colors.milliseconds.long[index]);
         $('#timer > span.seperator').css('color', colors.seperator.long[index]);
-    } else if (percentage > 0.75 && percentage <= .85) {
-        index = Math.round(
-            oscillator((totalDistance * percentage) / 1000, 0.5, 16, 0, 16)
-        );
+        $('#bar').css('backgroundColor', colors.bar.long[index]);
+    } else if (percentage > 0.5 && percentage <= 0.75) {
         $('#timer > span.hours').css('color', colors.hours.mid[index]);
         $('#timer > span.minutes').css('color', colors.minutes.mid[index]);
         $('#timer > span.seconds').css('color', colors.seconds.mid[index]);
         $('#timer > span.milliseconds').css('color', colors.milliseconds.mid[index]);
         $('#timer > span.seperator').css('color', colors.seperator.mid[index]);
+        $('#bar').css('backgroundColor', colors.bar.mid[index]);
     } else {
-        index = Math.round(
-            oscillator((totalDistance * percentage) / 1000, 1, 16, 0, 16)
-        );
         $('#timer > span.hours').css('color', colors.hours.short[index]);
         $('#timer > span.minutes').css('color', colors.minutes.short[index]);
         $('#timer > span.seconds').css('color', colors.seconds.short[index]);
         $('#timer > span.milliseconds').css('color', colors.milliseconds.short[index]);
         $('#timer > span.seperator').css('color', colors.seperator.short[index]);
+        $('#bar').css('backgroundColor', colors.bar.short[index]);
     }
 }
 
@@ -129,61 +169,22 @@ function upodateUI(timerHandle) {
     updateColors(distance, totalDistance);
 }
 
+// This function precomputes the color table for animation.
+function updateColorTable() {
+    colors = {
+        hours: getColorSet('#timer > span.hours', 'color', 1.0, countdown_config.color_precision),
+        minutes: getColorSet('#timer > span.minutes', 'color', 1.0, countdown_config.color_precision),
+        seconds: getColorSet('#timer > span.seconds', 'color', 1.0, countdown_config.color_precision),
+        milliseconds: getColorSet('#timer > span.milliseconds', 'color', 1.0, countdown_config.color_precision),
+        seperator: getColorSet('#timer > span.seperator', 'color', 1.0, countdown_config.color_precision),
+        bar: getColorSet('#bar', 'backgroundColor', 1.0, countdown_config.color_precision)
+    }
+}
+
 // Countdown main thread.
 $(document).ready(function () {
-    var GetVars = parseGet();
-    var countdown_config = {
-        days: parseInt((!GetVars['d']) ? 0 : GetVars['d']),
-        days_enabled: !(!GetVars['d']),
-        hours: parseInt((!GetVars["h"]) ? 0 : GetVars['h']),
-        hours_enabled: !(!GetVars['h']),
-        minutes: parseInt((!GetVars['m']) ? 0 : GetVars['m']),
-        minutes_enabled: !(!GetVars['m']),
-        seconds: parseInt((!GetVars['s']) ? 0 : GetVars['s']),
-        seconds_enabled: !(!GetVars['s'])
-    }
-    if (!countdown_config.seconds_enabled && !countdown_config.minutes_enabled && !countdown_config.hours_enabled && !countdown_config.days_enabled) {
-        throw new Error("No time specified in GET variables.  You need to set a countdown time.");
-    }
-    initialDate = new Date().getTime();
-    countDownDate = new Date(initialDate +
-        (1000 * countdown_config.seconds) +
-        (1000 * 60 * countdown_config.minutes) +
-        (1000 * 60 * 60 * countdown_config.hours)
-    ).getTime();
-    totalDistance = countDownDate - initialDate;
-    colors = {
-        hours: {
-            short: chroma.scale([$('#timer > span.hours').css('color'), '#11ff11']).mode('lch').colors(32),
-            mid: chroma.scale([$('#timer > span.hours').css('color'), '#ffff11']).mode('lch').colors(32),
-            long: chroma.scale([$('#timer > span.hours').css('color'), '#ff1111']).mode('lch').colors(32)
-        },
-        minutes: {
-            short: chroma.scale([$('#timer > span.minutes').css('color'), '#11ff11']).mode('lch').colors(32),
-            mid: chroma.scale([$('#timer > span.minutes').css('color'), '#ffff11']).mode('lch').colors(32),
-            long: chroma.scale([$('#timer > span.minutes').css('color'), '#ff1111']).mode('lch').colors(32)
-        },
-        seconds: {
-            short: chroma.scale([$('#timer > span.seconds').css('color'), '#11ff11']).mode('lch').colors(32),
-            mid: chroma.scale([$('#timer > span.seconds').css('color'), '#ffff11']).mode('lch').colors(32),
-            long: chroma.scale([$('#timer > span.seconds').css('color'), '#ff1111']).mode('lch').colors(32)
-        },
-        milliseconds: {
-            short: chroma.scale([$('#timer > span.milliseconds').css('color'), '#11ff11']).mode('lch').colors(32),
-            mid: chroma.scale([$('#timer > span.milliseconds').css('color'), '#ffff11']).mode('lch').colors(32),
-            long: chroma.scale([$('#timer > span.milliseconds').css('color'), '#ff1111']).mode('lch').colors(32)
-        },
-        bar: {
-            short: chroma.scale([$('#bar').css('color'), '#11ff11']).mode('lch').colors(32),
-            mid: chroma.scale([$('#bar').css('color'), '#ffff11']).mode('lch').colors(32),
-            long: chroma.scale([$('#bar').css('color'), '#ff1111']).mode('lch').colors(32)
-        },
-        seperator: {
-            short: chroma.scale([$('#timer > span.seperator').css('color'), '#11ff11']).mode('lch').colors(32),
-            mid: chroma.scale([$('#timer > span.seperator').css('color'), '#ffff11']).mode('lch').colors(32),
-            long: chroma.scale([$('#timer > span.seperator').css('color'), '#ff1111']).mode('lch').colors(32)
-        }
-    }
+    getConfig();
+    updateColorTable();
     var x = setInterval(function () {
         upodateUI(x);
     }, 1 );
