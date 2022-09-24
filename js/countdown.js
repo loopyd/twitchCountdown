@@ -123,7 +123,7 @@ function updateClock(endtime) {
 // Update the colors of the clock based on modulated sine wave oscillator.
 function updateColors(_currentDistance, _totalDistance) {
     let percentage = (_totalDistance - _currentDistance) / _totalDistance;
-    index = Math.round(oscillator((totalDistance * percentage) / 1000, mapRange([0.0, 1.0], [0.125, 1.0], 1.0 * percentage), Math.round(countdown_config.color_precision / 2), 0, Math.round(countdown_config.color_precision / 2)));
+    index = Math.round(oscillator((totalDistance * percentage) / 1000, mapRange([0.0, 1.0], [0.0005, 0.5], 1.0 * percentage), Math.round(countdown_config.color_precision / 2), 0, Math.round(countdown_config.color_precision / 2)));
     if (percentage <= 0.5) {
         $('#timer > span.hours').css('color', colors.hours.long[index]);
         $('#timer > span.minutes').css('color', colors.minutes.long[index]);
@@ -131,7 +131,7 @@ function updateColors(_currentDistance, _totalDistance) {
         $('#timer > span.milliseconds').css('color', colors.milliseconds.long[index]);
         $('#timer > span.seperator').css('color', colors.seperator.long[index]);
         $('#bar').css('backgroundColor', colors.bar.long[index]);
-    } else if (percentage > 0.5 && percentage <= 0.75) {
+    } else if (percentage > 0.5 && percentage <= 0.85) {
         $('#timer > span.hours').css('color', colors.hours.mid[index]);
         $('#timer > span.minutes').css('color', colors.minutes.mid[index]);
         $('#timer > span.seconds').css('color', colors.seconds.mid[index]);
