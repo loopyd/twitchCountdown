@@ -1,5 +1,7 @@
 # Twitch Countdown Timer
-A very good looking countdown timer.
+A very good looking, highly customizable countdown timer for your stream.
+
+This project is an independent fork of [markanderson96/twitchCountdown](https://github.com/markanderson96/twitchCountdown).
 
 ## Customizing the Timer
 You can follow this guide to customize your timer to your liking.
@@ -29,6 +31,21 @@ GET variables you can add to index.html to customize the timer:
 | m | Minutes |
 | s | Seconds |
 
-## "Installation"
+## Installation
 
-You don't really install this, just download the ZIP (got to the green code button at top of page), place where convenient and add 'index.html' as a browser source in OBS/SLOBS/etc, and pass in your countdown time as URL GET parameters.
+1.  Download the ZIP (got to the green code button at top of page)
+2.  Extract and place files where convenient.
+3.  Add ``file://location/on/computer/index.html?m=1&s=0`` as a browser source in OBS/SLOBS/etc.
+3.  Customize the timer to your liking.
+
+## Notes
+
+1.  The timer starts fresh every time the browser source loads anew.
+2.  Advanced math is used to colorize and animate the timer via sine wave oscillation of precomputed chroma.js scale array indexes.
+3.  You can change the layout of the timer as long as you match the HTML structure included in ``index.html``.  Deviating from the tag structure will cause issues.
+
+## TODOs
+
+1.  In a future update, we will allow support via a browser cookie to persist across browser instances.
+2.  We plan to add a GET request variable to control the timer more than just autoplay on load.  Please stay tuned.
+3.  We plan to add some GET variables to customize the color animation parameters.
