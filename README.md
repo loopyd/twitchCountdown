@@ -22,14 +22,12 @@ The countdown timer is specified by adding GET arguments to the browser source U
 
 GET variables you can add to index.html to customize the timer:
 
-| --- | --- |
 | Variable | Description            | 
-| --- | --- |
+| -------- | ---------------------- |
 | d | Days |
 | h | Hours |
 | m | Minutes |
 | s | Seconds |
-| --- | --- |
 
 ## "Installation"
 
