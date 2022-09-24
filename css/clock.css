@@ -1,0 +1,50 @@
+body, html {
+    margin: 0;
+    font-family: "Inconsolata";
+    font-size: 20pt;
+    font-weight: bold;
+}
+
+#container {
+    height: 60px;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+#bar {
+    background-color: rgba(214, 157, 115);
+    height: 5px;
+    position: absolute;
+    top: 55px;
+    vertical-align: center;
+    border-radius: 0px;
+}
+
+#solidBar {
+    background-color: rgba(254, 249, 230, 1);
+    height: 60px;
+    line-height: 60px;
+    text-align: center;
+    border-radius: 10px;
+}
+
+#timer {
+    color: rgba(214, 157, 115);
+}
+
+#timer > span.seperator {
+    color: rgb(70, 62, 110);
+}
+
+#timer > span.milliseconds {
+    color: rgba(241, 157, 115);
+}
+#timer > span.minutes {
+    color: rgba(214, 157, 115);
+}
+#timer > span.seconds {
+    color: rgba(214, 157, 115);
+}
+#timer > span.hours {
+    color: rgba(214, 157, 115);
+}

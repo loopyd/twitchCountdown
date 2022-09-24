@@ -1,16 +1,26 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Hammersmith+One">
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inconsolata">
+    <link rel="stylesheet" href="css/clock.css">
+    <script src="https://code.jquery.com/jquery-3.6.1.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+    <script src="js/chroma.min.js"></script>
     <script src="js/countdown.js"></script>
 </head>
 <body>
     <div id="container">
-        <div id="bar"></div>
         <div id="solidBar">
-            <div id="puppyText"></div>
+            <div id="timer">
+                <span class="hours"></span>
+                <span class="seperator">:</span>
+                <span class="minutes"></span>
+                <span class="seperator">:</span>
+                <span class="seconds"></span>
+                <span class="seperator">:</span>
+                <span class="milliseconds"></span>   
+            </div>
         </div>
+        <div id="bar"></div>
     </div>
 </body>
 </html>
